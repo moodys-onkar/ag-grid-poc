@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@ag-grid-community/all-modules": "^26.2.1",
     "@testing-library/jest-dom": "^5.16.1",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
@@ -10,6 +11,7 @@
     "@types/node": "^16.11.21",
     "@types/react": "^17.0.38",
     "@types/react-dom": "^17.0.11",
+    "aws-sdk": "^2.1068.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-scripts": "5.0.0",
@@ -18,9 +20,11 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "start:server": "json-server --watch ./src/data/data.json --port 3001 --routes ./src/routes.json",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "generateData": "node src/data/generateData.js"
   },
   "eslintConfig": {
     "extends": [
@@ -39,5 +43,11 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^6.0.0-alpha.5",
+    "ag-grid-community": "^26.2.1",
+    "ag-grid-react": "^26.2.0",
+    "json-server": "^0.17.0"
   }
 }
