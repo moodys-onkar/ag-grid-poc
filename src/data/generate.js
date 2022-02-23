@@ -13,7 +13,7 @@ module.exports = () => {
     orderItems: [],
   };
 
-  for (let customer = 0; customer < 500; customer++) {
+  for (let customer = 0; customer < 2500; customer++) {
     const id = data.customers.length + 1;
     data.customers.push({
       id,
@@ -39,7 +39,7 @@ module.exports = () => {
     }
   }
 
-  for (let product = 0; product < 200; product++) {
+  for (let product = 0; product < 1000000; product++) {
     data.products.push({
       id: data.products.length + 1,
       name: faker.commerce.productName(),

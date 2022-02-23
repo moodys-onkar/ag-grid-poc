@@ -1,10 +1,9 @@
+import { LicenseManager } from "ag-grid-enterprise";
 import react, { useState, useEffect, useRef } from "react";
 import { AgGridColumn, AgGridReact } from "ag-grid-react";
-import { LicenseManager } from "ag-grid-enterprise";
 import "ag-grid-community/dist/styles/ag-grid.css";
 import "ag-grid-community/dist/styles/ag-theme-alpine.css";
 import {
-  GridReadyEvent,
   GridApi,
   RowNode,
   RefreshCellsParams,
@@ -13,9 +12,14 @@ import {
   ITooltipParams,
   CsvExportModule,
   ColumnApi,
+} from "ag-grid-enterprise";
+import { products, customers, comments } from "./constants";
+import {
+  AgGridEvent,
   ColDef,
+  IServerSideDatasource,
+  IServerSideGetRowsParams,
 } from "ag-grid-community";
-import { products, customers } from "./constants";
 
 LicenseManager.setLicenseKey(
   "CompanyName=Moodys,LicensedApplication=MDC,LicenseType=SingleApplication,LicensedConcurrentDeveloperCount=1,LicensedProductionInstancesCount=0,AssetReference=AG-023164,ExpiryDate=8_December_2022_[v2]_MTY3MDQ1NzYwMDAwMA==8d6ae199e65819a6993bbabdd640571b"
@@ -26,9 +30,9 @@ LicenseManager.setLicenseKey(
 export const DemoGrid = () => {
   const gridRef = useRef(null);
   const [rowData, setRowData] = useState(null);
-  const [gridApi, setGridApi] = useState<GridApi>();
-  const [columnApi, setColumnApi] = useState<ColumnApi>();
+  const [gridApi, setGridApi] = useState<GridApi | undefined>();
   const [columnVisible, setColumnVisible] = useState(true);
+  const [columnApi, setColumnApi] = useState<ColumnApi>();
 
   // const [colDefs, setColDefs] = useState([
   //   { field: "make" },
@@ -52,7 +56,7 @@ export const DemoGrid = () => {
   //   { field: "country" },
   // ]);
 
-  const [value, setValue] = useState("products");
+  const [value, setValue] = useState("comments");
 
   const [colDefs, setColDefs] = useState<ColDef[]>([]);
 
@@ -65,6 +69,9 @@ export const DemoGrid = () => {
       case "Customers":
         setColDefs(customers);
         break;
+      case "Comments":
+        setColDefs(comments);
+        break;
       default:
         break;
     }
@@ -72,19 +79,24 @@ export const DemoGrid = () => {
 
   const gridApiRef = useRef<any>(null);
 
-  useEffect(() => {
-    fetch(`http://localhost:3001/${value}`)
-      .then((result) => result.json())
-      .then((rowData) => setRowData(rowData));
-  }, [value]);
+  // useEffect(() => {
+  //   //   fetch(`http://localhost:3001/${value}`)
+  //   //     .then((result) => result.json())
+  //   //     .then((rowData) => setRowData(rowData));
+  //   // }, [value]);
+  //   fetch(`https://jsonplaceholder.typicode.com/${value}`)
+  //     .then((result) => result.json())
+  //     .then((rowData) => setRowData(rowData));
+  // }, [value]);
 
   // in onGridReady, store the api for later use
-  const onGridReady = (params: GridReadyEvent) => {
+  const onGridReady = (params: AgGridEvent) => {
     // using hooks - setGridApi/setColumnApi are returned by useState
     gridApiRef.current = params.api;
-    setColDefs(products);
+    //setColDefs(products);
+    setColDefs(comments);
 
-    setGridApi(gridApiRef.current);
+    setGridApi(params.api);
     setColumnApi(params.columnApi);
   };
 
@@ -112,6 +124,29 @@ export const DemoGrid = () => {
   };
 
   // or setState if using components
+  const rowModelType = "serverSide";
+
+  const datasource: IServerSideDatasource = {
+    getRows(params: IServerSideGetRowsParams) {
+      params.request.startRow = 1;
+      params.request.endRow = 30;
+      console.log(JSON.stringify(params.request, null, 1));
+
+      fetch("https://jsonplaceholder.typicode.com/comments", {})
+        .then((httpResponse) => httpResponse.json())
+        .then((response) => {
+          console.log(response);
+          params.success({
+            rowData: response,
+            rowCount: params.request.endRow,
+          });
+        })
+        .catch((error) => {
+          console.error(error);
+          params.fail();
+        });
+    },
+  };
 
   return (
     <div style={{ width: "100%", height: "900px" }}>
@@ -130,22 +165,21 @@ export const DemoGrid = () => {
           <option value="Products">Products</option>
           <option value="Customers">Customers</option>
           <option value="Accounts">Accounts</option>
+          <option value="Comments">Comments</option>
         </select>
         <AgGridReact
           rowSelection="multiple"
           ref={gridApiRef}
           groupDisplayType={"groupRows"}
-          sideBar={true}
           defaultColDef={{
             sortable: true,
-            filter: true,
             floatingFilter: true,
             resizable: true,
           }}
-          rowData={rowData}
+          serverSideDatasource={datasource}
           columnDefs={colDefs}
-          pagination={true}
           onGridReady={onGridReady}
+          rowModelType={rowModelType}
         ></AgGridReact>
       </div>
     </div>

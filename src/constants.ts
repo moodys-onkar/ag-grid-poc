@@ -1,3 +1,5 @@
+import { ICellRendererParams } from "ag-grid-enterprise";
+
 export const products = [
   { field: "id", checkboxSelection: true, headerCheckboxSelection: true },
   { field: "name" },
@@ -9,6 +11,16 @@ export const products = [
   { field: "price" },
   { field: "color" },
   { field: "details" },
+];
+
+export const comments = [
+  {
+    field: "postId",
+  },
+  { field: "id" },
+  { field: "name" },
+  { field: "email" },
+  { field: "body" },
 ];
 
 // export const customers = [
@@ -42,7 +54,7 @@ export const customers = [
     headerName: "Avatar",
     field: "avatar",
     width: 100,
-    cellRenderer: ({ value }) =>
+    cellRenderer: ({ value }: ICellRendererParams) =>
       `<img style="width:20px;height:20px" src=${value}/>`,
     filter: false,
   },
