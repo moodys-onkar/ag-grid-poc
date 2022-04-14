@@ -1,4 +1,4 @@
-import react, { useState, useEffect, useRef } from "react";
+import react, { useState, useEffect, useRef, useMemo } from "react";
 import { AgGridColumn, AgGridReact } from "ag-grid-react";
 import { LicenseManager } from "ag-grid-enterprise";
 import "ag-grid-community/dist/styles/ag-grid.css";
@@ -14,6 +14,8 @@ import {
   CsvExportModule,
   ColumnApi,
   ColDef,
+  IAggFunc,
+  IAggFuncParams,
 } from "ag-grid-community";
 import { products, customers } from "./constants";
 
@@ -25,16 +27,93 @@ LicenseManager.setLicenseKey(
 
 export const DemoGrid = () => {
   const gridRef = useRef(null);
-  const [rowData, setRowData] = useState(null);
+  // const [rowData, setRowData] = useState(null);
   const [gridApi, setGridApi] = useState<GridApi>();
   const [columnApi, setColumnApi] = useState<ColumnApi>();
   const [columnVisible, setColumnVisible] = useState(true);
 
-  // const [colDefs, setColDefs] = useState([
-  //   { field: "make" },
-  //   { field: "model" },
-  //   { field: "price" },
-  // ]);
+  const [colDefs, setColDefs] = useState([
+    { field: "make" },
+    { field: "model" },
+    {
+      field: "price",
+      rowGroup: false,
+      aggFunc: "myMedian",
+      editable: true,
+      valueParser: "Number(newValue)",
+    },
+  ]);
+
+  const createData = (count: number, prefix: string) => {
+    var result = [];
+    for (var i = 0; i < count; i++) {
+      result.push({
+        make: prefix + " Athlete " + i,
+        model: prefix + " Age " + i,
+        price: prefix + " Country " + i,
+      });
+    }
+    return result;
+  };
+
+  const pinnedTopRowData = useMemo(() => {
+    return createData(1, "Top");
+  }, []);
+
+  const aggFuncs = {
+    // this overrides the grids built-in sum function
+    myMedian: (params: IAggFuncParams) => {
+      const sorted = params.values.slice().sort((a, b) => a - b);
+      const middle = Math.floor(sorted.length / 2);
+
+      if (sorted.length % 2 === 0) {
+        return (sorted[middle - 1] + sorted[middle]) / 2;
+      }
+
+      return sorted[middle];
+    },
+  };
+
+  const products = [
+    { make: "Toyota", model: "Celica", price: 1 },
+    { make: "Toyota", model: "Celica", price: 2 },
+    { make: "Toyota", model: "Celica", price: 3 },
+    { make: "Ford", model: "Mondeo", price: 4 },
+    { make: "Ford", model: "Mondeo", price: 5 },
+    { make: "Porsche", model: "Boxter", price: 6 },
+    { make: "Toyota", model: "Celica", price: 10 },
+    { make: "Toyota", model: "Celica", price: 12 },
+    { make: "Toyota", model: "Celica", price: 13 },
+    { make: "Ford", model: "Mondeo", price: 14 },
+    { make: "Ford", model: "Mondeo", price: 15 },
+    { make: "Porsche", model: "Boxter", price: 26 },
+    { make: "Toyota", model: "Celica", price: 31 },
+    { make: "Toyota", model: "Celica", price: 12 },
+    { make: "Toyota", model: "Celica", price: 43 },
+    { make: "Ford", model: "Mondeo", price: 44 },
+    { make: "Ford", model: "Mondeo", price: 55 },
+    { make: "Porsche", model: "Boxter", price: 62 },
+    { make: "Toyota", model: "Celica", price: 13 },
+    { make: "Toyota", model: "Celica", price: 25 },
+    { make: "Toyota", model: "Celica", price: 33 },
+    { make: "Ford", model: "Mondeo", price: 47 },
+    { make: "Ford", model: "Mondeo", price: 58 },
+    { make: "Porsche", model: "Boxter", price: 69 },
+    { make: "Toyota", model: "Celica", price: 13 },
+    { make: "Toyota", model: "Celica", price: 22 },
+    { make: "Toyota", model: "Celica", price: 34 },
+    { make: "Ford", model: "Mondeo", price: 47 },
+    { make: "Ford", model: "Mondeo", price: 59 },
+    { make: "Porsche", model: "Boxter", price: 66 },
+    { make: "Toyota", model: "Celica", price: 14 },
+    { make: "Toyota", model: "Celica", price: 22 },
+    { make: "Toyota", model: "Celica", price: 34 },
+    { make: "Ford", model: "Mondeo", price: 46 },
+    { make: "Ford", model: "Mondeo", price: 57 },
+    { make: "Porsche", model: "Boxter", price: 68 },
+  ];
+
+  const [rowData, setRowData] = useState(products);
 
   // const checkBoxSelected = (params) => {
   //   const displayedColumns = params.columnApi.getAllDisplayedColumns();
@@ -54,16 +133,16 @@ export const DemoGrid = () => {
 
   const [value, setValue] = useState("products");
 
-  const [colDefs, setColDefs] = useState<ColDef[]>([]);
+  //const [colDefs, setColDefs] = useState<ColDef[]>([]);
 
   const setColumns = (value: string) => {
     setValue(value);
     switch (value) {
       case "Products":
-        setColDefs(products);
+        //   setColDefs(products);
         break;
       case "Customers":
-        setColDefs(customers);
+        //      setColDefs(customers);
         break;
       default:
         break;
@@ -72,17 +151,17 @@ export const DemoGrid = () => {
 
   const gridApiRef = useRef<any>(null);
 
-  useEffect(() => {
-    fetch(`http://localhost:3001/${value}`)
-      .then((result) => result.json())
-      .then((rowData) => setRowData(rowData));
-  }, [value]);
+  // useEffect(() => {
+  //   fetch(`http://localhost:3001/${value}`)
+  //     .then((result) => result.json())
+  //     .then((rowData) => setRowData(rowData));
+  // }, [value]);
 
   // in onGridReady, store the api for later use
   const onGridReady = (params: GridReadyEvent) => {
     // using hooks - setGridApi/setColumnApi are returned by useState
     gridApiRef.current = params.api;
-    setColDefs(products);
+    // setColDefs(products);
 
     setGridApi(gridApiRef.current);
     setColumnApi(params.columnApi);
@@ -104,7 +183,7 @@ export const DemoGrid = () => {
   };
 
   useEffect(() => {
-    columnApi?.setColumnVisible("first_name", columnVisible);
+    columnApi?.setColumnVisible("firstName", columnVisible);
   }, [columnVisible]);
 
   const toggleColumnVisibility = () => {
@@ -134,8 +213,9 @@ export const DemoGrid = () => {
         <AgGridReact
           rowSelection="multiple"
           ref={gridApiRef}
-          groupDisplayType={"groupRows"}
-          sideBar={true}
+          sideBar={false}
+          aggFuncs={aggFuncs}
+          pinnedTopRowData={pinnedTopRowData}
           defaultColDef={{
             sortable: true,
             filter: true,
@@ -146,6 +226,7 @@ export const DemoGrid = () => {
           columnDefs={colDefs}
           pagination={true}
           onGridReady={onGridReady}
+          groupIncludeTotalFooter={true}
         ></AgGridReact>
       </div>
     </div>
